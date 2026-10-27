@@ -1,0 +1,13 @@
+__pycache__/
+*.py[co]
+
+# editors, OS, local tooling
+.vscode/
+.idea/
+.claude/
+.DS_Store
+Thumbs.db
+.env
+.env.*
+.venv/
+.pytest_cache/
