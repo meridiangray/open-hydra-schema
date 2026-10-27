@@ -31,7 +31,26 @@ Commit the result and tag it. `MANIFEST.sha256` lists the SHA-256 of every file,
 
 ## Using it
 
-To give an archive this schema, copy `schema/` over the archive's `.hydra/schema/`. hydra reads that folder by file path, so it needs nothing else.
+You don't need this repository to use hydra: `hydra-ctl init` already puts this schema in every new archive.
+
+Use it to put an existing archive back on a known schema, for example after editing the schema by hand:
+
+```sh
+git clone --depth 1 https://github.com/meridiangray/open-hydra-schema
+rm -rf /path/to/case/.hydra/schema
+cp -r open-hydra-schema/schema /path/to/case/.hydra/schema
+hydra-ctl check /path/to/case
+hydra-ctl build /path/to/case --force
+```
+
+In PowerShell, the middle two lines are:
+
+```powershell
+Remove-Item -Recurse -Force C:\path\to\case\.hydra\schema
+Copy-Item -Recurse open-hydra-schema\schema C:\path\to\case\.hydra\schema
+```
+
+Delete the old folder first: copying on top of it keeps files this version doesn't have.
 
 ## License
 
