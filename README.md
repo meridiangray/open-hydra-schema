@@ -10,7 +10,7 @@ A pinned, exact copy of the schema files that ship in [hydra](https://github.com
 |---|---|
 | `schema/ftm/followthemoney/` | The vendored [FollowTheMoney](https://followthemoney.tech) entity types (MIT, see [NOTICE.md](NOTICE.md)) |
 | `schema/ftm/config/` | `common.yaml` (extra record-card fields) and `findfields.yaml` |
-| `schema/extensions/` | Types and properties hydra adds on top of FtM (`Artifact`, `sources`, collation) |
+| `schema/extensions/` | Types and properties hydra adds on top of FtM (`Artifact`, `sources`, `upstream`, collation; deals: `transaction`, `capacity`, Event `amount` / `currency`) |
 | `schema/direction.yaml` | Which end of each relationship is the parent, and which are sideways |
 | `schema/params/` | Per-type match, distinct and fold policy |
 
