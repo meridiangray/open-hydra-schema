@@ -1,0 +1,178 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://meridiangray.github.io/open-hydra-schema/archive/hydra.schema.yaml
+title: hydra.yaml
+description: >-
+  The archive manifest, at the archive's root. Written by `hydra-ctl init`, by `defaults`, by the Archive
+  Configuration page and by hand. Read by every command; a key not named here is ignored by hydra and reported
+  by `check` (archive.unknown-key).
+type: object
+additionalProperties: false
+properties:
+  name:
+    description: The archive's display name (Archive Configuration writes it; `universe.yaml` title follows it).
+    type: string
+    minLength: 1
+  prefix:
+    description: >-
+      The id prefix of the archive's collections when a collection names none (`<prefix>:<record id>`). Lowercase
+      letters, digits, dot, dash and underscore; not one of the reserved source names.
+    type: string
+    pattern: '^(?!(?:main|session|parsed|manifest|dynamic)$)[a-z0-9][a-z0-9._-]{0,63}$'
+    x-message: "is not a valid id prefix (lowercase letters, digits, . _ -; not main, session, parsed, manifest or dynamic)"
+  format:
+    description: >-
+      The archive format number: the one authoritative stamp. A hydra refuses an archive whose format is newer than
+      its own. Format 3 stamps it here only (format 2 also wrote it into `collections/manifest.json` and `.hydra/parsed/build.yaml`).
+    type: integer
+    minimum: 1
+    x-message: "is not an archive format number (a whole number from 1)"
+  ftm:
+    description: >-
+      SHA-256 of the vendored FollowTheMoney schema (`.hydra/schema/ftm`) the archive was made with. Stamped by
+      `init` and by export; `check` compares it with the files (archive.ftm-changed).
+    type: string
+    pattern: '^[0-9a-f]{64}$'
+  subject:
+    description: The charted subject (the org chart's root).
+    type: object
+    additionalProperties: false
+    properties:
+      label: {type: string}
+      type: {type: string}
+    x-message: "must be a mapping such as {label: \"Hawthorne Organization\", type: Organization}"
+  search:
+    description: How far searches look. `all`; `no-text` (not notes, description...); `names` (names and ids).
+    enum: [all, no-text, names]
+  same_name:
+    description: >-
+      Two records with one exact name and nothing else in common: `review` (the default) asks, `merge` merges.
+      A type's `<Type>.param.yaml` `same_name` wins over this key.
+    enum: [review, merge]
+  history:
+    description: >-
+      `on` (the default) takes a snapshot of the authored files after each command that writes them; `off` takes
+      none. YAML reads a bare `on` as true and `off` as false; both forms are accepted.
+    enum: [true, false, "on", "off"]
+  description:
+    description: A few lines about the archive, shown on the wiki's front page under the header.
+    type: string
+  author:
+    description: The default author of history steps and saves (`$HYDRA_AUTHOR` wins over it).
+    type: string
+  tasks:
+    description: Settings for agent tasks.
+    type: object
+    additionalProperties: false
+    properties:
+      stale_after:
+        description: >-
+          How long a checked-out task may go without activity before its lock counts as stale and another
+          session can take it over without `force` (default `2h`). A number and a unit: `30m`, `2h`, `1d`.
+        type: string
+        pattern: '^[0-9]+(\.[0-9]+)?\s*[mhd]$'
+        x-message: "is not a duration (a number and m, h or d, such as 2h)"
+    x-message: "must be a mapping such as {stale_after: 2h}"
+  defaults_off:
+    description: The shipped hierarchy defaults this archive switches off. Written by `hydra-ctl defaults`.
+    type: array
+    items:
+      enum: [generic, hierarchy, hints]
+      x-message: "cannot be switched off (only generic, hierarchy, hints)"
+  collections:
+    description: Per-collection settings, by collection name (the file name without `.json`).
+    type: object
+    additionalProperties: {$ref: "#/$defs/collection"}
+    x-message: "must be a mapping of collection name to {title, icon, prefix, views, wiki}"
+  collection_groups:
+    description: Named sets of collections that views and the Collections page treat as one.
+    type: object
+    additionalProperties:
+      type: object
+      additionalProperties: false
+      required: [collections]
+      properties:
+        title: {type: string}
+        collections:
+          type: array
+          items: {type: string}
+      x-message: "a group is {title: text, collections: [collection, ...]} and nothing else"
+    x-message: "must be a mapping of group to {title, collections: [...]}"
+$defs:
+  collection:
+    description: One collection's settings.
+    type: object
+    additionalProperties: false
+    properties:
+      title:
+        description: "What every surface shows in place of the collection name. Absent: the name."
+        type: string
+      icon:
+        description: "The collection's icon on the Collections page, an icon-library name (`tabler:folder`, `game:spell-book`). Absent: `tabler:folder`."
+        type: string
+        pattern: '^(?:tabler|game):[a-z0-9][a-z0-9-]*$'
+        x-message: "icon is an icon-library name such as tabler:folder"
+      prefix:
+        description: >-
+          The id prefix this collection's records get (format 2 kept it in `collections/manifest.json`). Absent: the
+          archive's `prefix`, else one made from the collection's name. The list of collections the last build read,
+          with each one's file, prefix and record count, is `.hydra/parsed/collections.json` (derived).
+        type: string
+        pattern: '^(?!(?:main|session|parsed|manifest|dynamic)$)[a-z0-9][a-z0-9._-]{0,63}$'
+      views:
+        description: >-
+          The wiki views this collection has, by view. Each value is `true` (on, as the view's defaults have it),
+          `false` (off), one spec, or a list of specs (several handles for one view).
+        type: object
+        additionalProperties: false
+        x-unknown-key: view
+        properties:
+          org: {$ref: "#/$defs/viewValue"}
+          links: {$ref: "#/$defs/viewValue"}
+          radial: {$ref: "#/$defs/viewValue"}
+          map: {$ref: "#/$defs/viewValue"}
+          timeline: {$ref: "#/$defs/viewValue"}
+          graph: {$ref: "#/$defs/viewValue"}
+        x-message: "views is a mapping of org, links, radial, map, timeline or graph to true, false, a spec or a list of specs"
+      wiki:
+        description: This collection's pages' overrides of `wiki.yaml`, merged key by key over it.
+        $ref: wiki.schema.yaml
+    x-message: >-
+      a collection's entry is a mapping of overrides, such as {title: "Pollard report", wiki: {sections: {...}},
+      views: {org: true}}
+  viewValue:
+    anyOf:
+      - type: boolean
+      - $ref: "#/$defs/viewSpec"
+      - type: array
+        items: {$ref: "#/$defs/viewSpec"}
+    x-message: "a view is true, false, a spec (focus, depth, edges, from, to, within, title) or a list of specs"
+  viewSpec:
+    description: >-
+      One view handle. Every view reads the same query: `?c=<collection or group>&focus=&depth=&edges=a,b&from=&to=&within=`;
+      a handle is that address built from the spec. Nothing else is allowed in a spec.
+    type: object
+    additionalProperties: false
+    x-unknown-key: spec key
+    properties:
+      focus:
+        description: An H id or a record id; one that names no entity fails `view_check`.
+        type: string
+      depth:
+        type: integer
+        minimum: 1
+      edges:
+        description: Relationship schemas to follow.
+        type: array
+        items: {type: string}
+      from:
+        description: A year.
+        type: [integer, string]
+      to:
+        description: A year.
+        type: [integer, string]
+      within:
+        description: "`collection` (the default): only this collection or group; `universe`: everything."
+        enum: [collection, universe]
+      title:
+        description: The handle's label.
+        type: string

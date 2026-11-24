@@ -1,0 +1,84 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://meridiangray.github.io/open-hydra-schema/archive/workflow.schema.yaml
+title: A workflow
+description: >-
+  `.hydra/workflows/<name>.yaml`: an archive's own workflow, or one overriding a built-in of the same `name`. The
+  step list a task starts from, and the guide it renders as. Built-ins live in hydra's `workflows/*.yaml` and have the
+  same shape.
+type: object
+additionalProperties: false
+required: [name, blocks]
+properties:
+  name: {type: string, minLength: 1}
+  title: {type: string}
+  use_when: {type: string}
+  guides:
+    description: Guide topics the task's agent reads first.
+    type: array
+    items: {type: string}
+  authorize:
+    description: MCP tools a task may be created with permission to confirm.
+    type: array
+    items: {type: string}
+  notes: {type: string}
+  blocks:
+    description: Blocks of steps, by code, in order.
+    type: object
+    additionalProperties: {$ref: "#/$defs/block"}
+  view_blocks:
+    description: Per wiki view, a block that replaces hydra's own for that view.
+    type: object
+    additionalProperties: {$ref: "#/$defs/viewBlock"}
+$defs:
+  step:
+    anyOf:
+      - type: array
+        description: "Short form: [code, text]."
+        items: {type: string}
+        minItems: 2
+        maxItems: 2
+      - type: object
+        additionalProperties: false
+        required: [code, text]
+        properties:
+          code: {type: string}
+          text:
+            description: The checkbox line.
+            type: string
+          tool: {type: string}
+          do:
+            description: What the agent does.
+            type: string
+          done:
+            description: What is true when the step is done.
+            type: string
+          stop:
+            description: When to stop and tell the person.
+            type: string
+          verify:
+            description: A check that must pass before the step can be ticked (`view_check:org`, `geo_clean`).
+            type: string
+          guide: {type: string}
+  block:
+    type: object
+    additionalProperties: false
+    properties:
+      title:
+        description: "`{subject}` is replaced in a `repeat: subject` block."
+        type: string
+      repeat:
+        description: "`subject`: the block is made once per subject the task names."
+        const: subject
+      steps:
+        type: array
+        items: {$ref: "#/$defs/step"}
+  viewBlock:
+    type: object
+    additionalProperties: false
+    properties:
+      code: {type: string}
+      title: {type: string}
+      guide: {type: string}
+      steps:
+        type: array
+        items: {$ref: "#/$defs/step"}

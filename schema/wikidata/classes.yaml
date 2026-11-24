@@ -1,0 +1,18 @@
+# .hydra/schema/wikidata/classes.yaml — which Wikidata class (P31 "instance of") is which type: Q-class -> schema.
+#
+# Part of the Wikidata layer, beside FollowTheMoney (ftm/) and hydra's extensions (extensions/), never inside them.
+# It is applied after FtM and the extensions are loaded: each schema named must be a type of that loaded model
+# (wdlayer.errors). The schema loader does not read this folder.
+#
+# This is the standard copy the schema repository publishes. `hydra-ctl wikidata import` still reads its classes from
+# .hydra/rules/wikidata.yaml, which an archive may change; the two hold the same list as shipped.
+
+classes:
+  Q5: Person
+  Q43229: Organization
+  Q4830453: Company
+  Q891723: Company
+  Q6881511: Company
+  Q783794: Company
+  Q7210356: Organization
+  Q327333: PublicBody

@@ -1,0 +1,113 @@
+# .hydra/schema/extensions/geo.yaml — places, geometries, and the links that put an entity somewhere.
+#
+#   Place    which place: a named place records refer to (a country, region, city, district,
+#            an estate's locality). An entity: it holds keys (wikidata:, iso3166:, geonames:).
+#   Feature  what shape: a GeoJSON geometry (or a point as latitude/longitude) and where it came
+#            from. Never an entity's identity: OSM ids (osm:way/123) go here and nowhere else, and
+#            two Features are one only by key or H, never by name (Feature.param.yaml).
+#   GeoLink  this entity, there, as what, when: a relationship from any entity to a Place, a
+#            Feature, an Address or another located entity, with a role (.hydra/rules/geo.yaml).
+#
+# Where an entity is drawn is worked out at build time (universe/.parsed/geo/): its GeoLinks, and
+# what its own fields already say (coordinates, addressEntity, country). Its primary geometry is
+# the first role geo.yaml lists for its type, unless a person chose one (review: geo-<H>).
+Place:
+  extends: [Thing]
+  label: Place
+  plural: Places
+  description: A named place that records refer to (a country, region, city, district or locality).
+  featured: [name, placeType, country, parent]
+  caption: [name]
+  properties:
+    placeType:
+      label: Kind of place
+      description: "OSM's place=* words and admin units: country, state, region, county, city, town, village, hamlet, suburb, neighbourhood, locality, island, estate"
+      type: string
+    adminLevel:
+      label: Admin level
+      description: OSM admin_level (2 is a country) when the place is an administrative unit
+      type: number
+    parent:
+      label: Within
+      type: entity
+      range: Place
+      reverse:
+        name: contains
+        label: Contains
+    latitude:
+      label: Latitude
+      type: number
+    longitude:
+      label: Longitude
+      type: number
+
+Feature:
+  extends: [Thing]
+  label: Geometry
+  plural: Geometries
+  description: A shape that stands for an entity, or part of one, on a map.
+  featured: [name, osmTag, precision]
+  caption: [name]
+  properties:
+    geometry:
+      label: Geometry
+      description: "GeoJSON geometry (RFC 7946, WGS84, [lon, lat]): Point, LineString, Polygon or Multi*"
+      type: json
+    latitude:
+      label: Latitude
+      type: number
+    longitude:
+      label: Longitude
+      type: number
+    precision:
+      label: Precision
+      description: "exact (the default), approximate (within `radius` metres), area (somewhere inside), or drawn (a person or agent drew it on the Atlas)"
+      type: string
+    radius:
+      label: Radius (m)
+      type: number
+    osmTag:
+      label: OSM tag
+      description: OSM tags exactly as OSM writes them (building=house); kept for interop, not for paint
+      type: string
+    osmVersion:
+      label: OSM version
+      type: string
+    startDate:
+      label: From
+      type: date
+    endDate:
+      label: To
+      type: date
+
+GeoLink:
+  extends: [Interval]
+  label: Geo link
+  plural: Geo links
+  description: Where an entity is, as what, and when.
+  matchable: false
+  required: [entity, location]
+  edge:                           # ENTITY is at LOCATION
+    source: entity
+    label: "is at"
+    target: location
+    directed: true
+  featured: [entity, role, location, startDate, endDate]
+  properties:
+    entity:
+      label: Entity
+      type: entity
+      range: Thing
+      reverse:
+        name: geolinks
+        label: Places and geometry
+    location:
+      label: Location
+      type: entity
+      range: Thing
+      reverse:
+        name: geolinked
+        label: Linked here
+    role:
+      label: Role
+      type: string

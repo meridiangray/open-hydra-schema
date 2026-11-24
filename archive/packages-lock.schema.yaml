@@ -1,0 +1,29 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://meridiangray.github.io/open-hydra-schema/archive/packages-lock.schema.yaml
+title: .hydra/packages/lock.yaml
+description: >-
+  What an archive uses from installed packages (format 3, design D12), like a lock file: the same archive on another
+  machine resolves the same bytes (`hydra-ctl package sync`). Order matters: a lookup of icons, themes, archetypes and
+  rules takes the first package in lock order that has the file. Removing a package never touches records.
+type: object
+additionalProperties: false
+required: [packages]
+properties:
+  packages:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required: [name, version, sha256, scope]
+      properties:
+        name:
+          type: string
+          pattern: '^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$'
+        version: {type: string}
+        sha256:
+          description: The SHA-256 of the package's manifest (which holds every file's hash).
+          type: string
+          pattern: '^[0-9a-f]{64}$'
+        scope:
+          description: "`machine`: the machine's shared store; `universe`: this universe's backdrop."
+          enum: [machine, universe]

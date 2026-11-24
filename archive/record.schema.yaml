@@ -1,0 +1,108 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://meridiangray.github.io/open-hydra-schema/archive/record.schema.yaml
+title: A collection record
+description: >-
+  One record of `collections/<name>.json` or `.hydra/sources/entries/<name>.json` (the files are a JSON array when
+  saved by hydra, JSON lines when imported; both are read, and written back in the form read). A record is the three
+  keys `id`, `schema` and `properties`, in FollowTheMoney's shape, plus the one envelope extension `_meta`.
+  Nothing else may sit beside them. Images and badges are never record fields: a record does not name its own
+  picture; they are linked by rule in `.hydra/rules/hints.yaml` (`thumb`, `portrait`, `logo`, `badge`).
+type: object
+required: [id, schema, properties]
+additionalProperties: false
+properties:
+  id:
+    description: The record id, unique in the archive once prefixed (`<collection prefix>:<id>`).
+    type: string
+    minLength: 1
+  schema:
+    description: A schema name from `.hydra/schema` (`Person`, `Organization`, `GeoLink`...).
+    type: string
+    pattern: '^[A-Z][A-Za-z0-9]*$'
+  properties:
+    description: Property name to a list of text values. FtM stores every value as text, dates as ISO prefixes.
+    type: object
+    propertyNames:
+      pattern: '^[A-Za-z][A-Za-z0-9]*$'
+    additionalProperties:
+      type: array
+      items: {type: string}
+  _meta:
+    description: Qualifiers hydra keeps beside the record without breaking an FtM export.
+    type: object
+    additionalProperties: false
+    properties:
+      approx:
+        description: >-
+          A date property's qualifier: a source's "c. 1748" keeps `1748` in the property and `circa` here.
+          EDTF-aligned: circa `1748~`, before `[..1800]`, after `[1900..]`, decade `195X`, uncertain `1748?`.
+        type: object
+        propertyNames:
+          pattern: '^[A-Za-z][A-Za-z0-9]*$'
+        additionalProperties:
+          enum: [circa, before, after, decade, uncertain]
+      basis:
+        description: >-
+          What a field's value rests on when it is not (only) a kept source's statement, `{field: state}`: chosen in
+          Labels and never shown. Wikidata's P5102 "nature of statement" is the same idea.
+        type: object
+        propertyNames:
+          pattern: '^[A-Za-z][A-Za-z0-9]*$'
+        additionalProperties:
+          enum: [sourceless, assumed, inferred, reported, recalled, estimated, disputed]
+      cites:
+        description: >-
+          The ids of the kept sources a relationship record cites. FtM gives a relationship (Ownership, Family...) no
+          `sources`, so a save moves their URLs into `sourceUrl` and keeps the ids here while the batch is checked;
+          the record is written without it (`storable`), so a file holds it only if something wrote it otherwise.
+        type: array
+        items: {type: string, minLength: 1}
+      extra:
+        description: >-
+          Values for properties the record's type does not have, `{field: {values, wd}}`: kept, never dropped, until
+          they are assigned to a field, to a property of the archive's own, or dropped. `field` is the name the
+          values came under, or the label of their Wikidata code when they came under a code (`P1449`).
+        type: object
+        propertyNames:
+          minLength: 1
+        additionalProperties:
+          description: One field the type lacks, with its values and their code.
+          type: object
+          additionalProperties: false
+          required: [values]
+          properties:
+            values:
+              description: The values, as text.
+              type: array
+              items: {type: string}
+            wd:
+              description: The Wikidata property the values came under or were marked with; null when none is known.
+              type: [string, 'null']
+              pattern: '^P[0-9]+$'
+      wd:
+        description: >-
+          The Wikidata property behind a field, `{field: P-code}`; written by the Wikidata import and by labelling.
+        type: object
+        propertyNames:
+          pattern: '^[A-Za-z][A-Za-z0-9]*$'
+        additionalProperties:
+          type: string
+          pattern: '^P[0-9]+$'
+x-renames:
+  description: >-
+    Names an importer reads as hydra's, so an export writes them back (FTM_RENAMES in ingest.py). `Family`'s
+    `person`, `relative` and `relationship` are FtM's own names and are not renamed.
+  properties:
+    proof: sources
+x-schema-renames:
+  description: >-
+    Schema names an older archive may still carry in `schema`. Every record load reads them as the new name
+    (SCHEMA_RENAMES in ingest.py) and `hydra-ctl upgrade` rewrites the files; an export writes the new name.
+  properties:
+    Siting: GeoLink
+x-import-only:
+  description: >-
+    Keys an import accepts and does not keep as record fields: `entities` wraps a list; `referents` is a list of
+    ids an upstream tool merged into the record (read for identity as `_referents`, never written back);
+    `statements` (per-value provenance) and `{entity, composed, statements}` (FtM entity_sources) are folded into
+    a record.

@@ -37,6 +37,7 @@ lateral:
   - Documentation
   - Mention
   - Sanction
+  - GeoLink          # where an entity is (geo.yaml); hydra treats it as sideways even when not listed
 
 # Both a sideways tie and a vertical candidate: a participant sits under the
 # record's own `project`, and keeps a sideways tie to it.

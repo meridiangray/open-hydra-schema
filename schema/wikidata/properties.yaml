@@ -1,0 +1,92 @@
+# .hydra/schema/wikidata/properties.yaml — which Wikidata property each field is: the code every claim hydra writes
+# carries in the record's `_meta.wd` (hydra/schema/wdprops.py).
+#
+# A layer of its own, beside FollowTheMoney (ftm/) and hydra's extensions (extensions/), never inside them. It is
+# applied after FtM and the extensions are loaded: each key must name a type and field of that loaded model
+# (wdlayer.errors), and a key that does not is an error in this file, never a change to the model. The schema loader
+# does not read this folder.
+#
+#   properties   `Schema.field` or a bare `field` -> "P…". `Schema.field` wins over the bare field; a field of a parent
+#                type counts. A geo link's role is `GeoLink.<role>` (the roles of .hydra/rules/geo.yaml).
+#   none         fields that have no Wikidata property, so "not mapped yet" and "no such property" differ.
+#
+# An archive's own copy of this folder replaces the one hydra ships. The archive's .hydra/rules/wikidata.yaml (the
+# import map) is laid on top: a field it fills from a property takes that property's code.
+
+properties:
+  address: "P159"
+  birthDate: "P569"
+  birthPlace: "P19"
+  citizenship: "P27"
+  country: "P17"
+  deathDate: "P570"
+  dissolutionDate: "P576"
+  education: "P69"
+  ethnicity: "P172"
+  firstName: "P735"
+  gender: "P21"
+  incorporationDate: "P571"
+  jurisdiction: "P1001"
+  lastName: "P734"
+  leiCode: "P1278"
+  mainCountry: "P495"
+  nationality: "P27"
+  parent: "P749"
+  position: "P106"
+  religion: "P140"
+  sector: "P452"
+  spokenLanguage: "P1412"
+  website: "P856"
+
+  Company.address: "P159"
+  Company.country: "P17"
+  Company.dissolutionDate: "P576"
+  Company.incorporationDate: "P571"
+  Company.leiCode: "P1278"
+  Company.sector: "P452"
+
+  Employment.employer: "P108"
+
+  Event.involved: "P710"
+  Event.organizer: "P664"
+
+  GeoLink.base: "P504"
+  GeoLink.born: "P19"
+  GeoLink.buried: "P119"
+  GeoLink.detention: "P2632"
+  GeoLink.died: "P20"
+  GeoLink.event: "P276"
+  GeoLink.jurisdiction: "P1001"
+  GeoLink.location: "P131"
+  GeoLink.posting: "P131"
+  GeoLink.residence: "P551"
+  GeoLink.seat: "P159"
+  GeoLink.work: "P937"
+
+  Membership.organization: "P463"
+
+  Occupancy.post: "P39"
+
+  Organization.address: "P159"
+  Organization.country: "P17"
+  Organization.dissolutionDate: "P576"
+  Organization.incorporationDate: "P571"
+  Organization.leiCode: "P1278"
+  Organization.sector: "P452"
+
+  Ownership.owner: "P127"
+
+  Person.birthDate: "P569"
+  Person.birthPlace: "P19"
+  Person.citizenship: "P27"
+  Person.deathDate: "P570"
+  Person.education: "P69"
+  Person.ethnicity: "P172"
+  Person.firstName: "P735"
+  Person.gender: "P21"
+  Person.lastName: "P734"
+  Person.position: "P106"
+  Person.religion: "P140"
+  Person.spokenLanguage: "P1412"
+
+none: []

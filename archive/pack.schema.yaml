@@ -1,0 +1,40 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://meridiangray.github.io/open-hydra-schema/archive/pack.schema.yaml
+title: hydra-pack.json
+description: >-
+  The index inside a `.hydra` file (a zip of an archive; `hydra-ctl pack`). Pack format 1 is independent of the archive
+  format: a hydra unpacks any pack whose format it reads and refuses one whose file hashes differ. The same archive
+  always packs to the same bytes (sorted entries, fixed timestamps). Backups, `__pycache__`, activation markers and
+  symbolic links never go in; neither does a file that looks like a secret (`*.pem`, `*.key`, `id_rsa*`,
+  `id_ed25519*`, `.env`, `.env.*`, `secrets.*`, `*.p12`, `*.pfx`, `credentials.json`): `pack` and history snapshots refuse
+  it by name. A secret never sits in an archive, a pack, history or an export.
+type: object
+additionalProperties: false
+required: [format, name, parsed, files]
+properties:
+  format:
+    description: The pack format; 1.
+    const: 1
+  name: {type: string}
+  parsed:
+    description: Whether the last build (`.hydra/parsed/`, `universe/.parsed/`) is in the pack.
+    type: boolean
+  files:
+    description: Every file in the pack, path to the SHA-256 of its content.
+    type: object
+    additionalProperties:
+      type: string
+      pattern: '^[0-9a-f]{64}$'
+  history:
+    description: "`true` when `.hydra/history/` is kept (absent otherwise)."
+    const: true
+  layers:
+    description: Present only with a universe layer.
+    type: array
+    items: {enum: [archive, universe]}
+  members:
+    description: Present only with a universe layer. Each embedded member (`universe/members/<name>.hydra`), name to SHA-256.
+    type: object
+    additionalProperties:
+      type: string
+      pattern: '^[0-9a-f]{64}$'

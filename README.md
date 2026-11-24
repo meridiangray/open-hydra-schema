@@ -13,21 +13,24 @@ A pinned, exact copy of the schema files that ship in [hydra](https://github.com
 | `schema/extensions/` | Types and properties hydra adds on top of FtM (`Artifact`, `sources`, `upstream`, collation; deals: `transaction`, `capacity`, Event `amount` / `currency`) |
 | `schema/direction.yaml` | Which end of each relationship is the parent, and which are sideways |
 | `schema/params/` | Per-type match, distinct and fold policy |
+| `schema/wikidata/` | The Wikidata layer, kept apart from FtM and the extensions: `properties.yaml` (which Wikidata property each field and geo-link role is), `classes.yaml` (Wikidata classes to types). Applied after the model loads; every key must name a type and field of that model |
+| `archive/` | The archive format itself: one JSON Schema (draft 2020-12) per authored file (`hydra.yaml`, `wiki.yaml`, records, citations, verdicts, tasks, workflows, history snapshots, universe files, packages, `hydra-pack.json`), `files.yaml` naming every file, and [README.md](archive/README.md) generated from them |
 
-Everything else in an archive is data or rules, not schema, and is not here: collections, sources, verdicts, `positions.yaml`, `hints.yaml`, parsed builds.
+Everything else in an archive is data, not schema: collections, sources, verdicts, parsed builds. `archive/` says what shape each file has; the rules files (`positions.yaml`, `hints.yaml`...) are named there and still described by their own header comments.
 
 ## Keeping it in sync
 
 open-hydra's template is the source of truth; this repository pins it.
 
 ```sh
-python sync.py            # copy ../open-hydra/src/hydra/template/.hydra/schema into schema/, rewrite MANIFEST.sha256
+python sync.py            # copy the template's .hydra/schema into schema/ and its archive/ into archive/ (one step),
+                          # rebuild archive/README.md from the schemas, rewrite MANIFEST.sha256
 python sync.py --from DIR # copy from another schema folder
-python sync.py --check    # exit 1 if schema/ no longer matches MANIFEST.sha256
-python sync.py --check --from ../open-hydra/src/hydra/template/.hydra/schema   # ...or the template itself
+python sync.py --check    # exit 1 if schema/ or archive/ no longer matches MANIFEST.sha256, or README.md is stale
+python sync.py --check --from ../hydra-git/src/hydra/template/.hydra/schema   # ...or the template itself
 ```
 
-Commit the result and tag it. `MANIFEST.sha256` lists the SHA-256 of every file, so a tag identifies the exact schema.
+Commit the result and tag it. `MANIFEST.sha256` lists the SHA-256 of every file (paths from this repository's root: `schema/...`, `archive/...`), so a tag identifies the exact schema and spec. Edit the spec in the template (`.hydra/schema/archive/`), where hydra's coverage test runs against it; never in `archive/` here.
 
 ## Using it
 

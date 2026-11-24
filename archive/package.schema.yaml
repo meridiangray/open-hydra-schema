@@ -1,0 +1,74 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://meridiangray.github.io/open-hydra-schema/archive/package.schema.yaml
+title: hydra-package.yaml
+description: >-
+  A package (format 3, design D12): the standard universe hydra ships and anything people share, in one format. A
+  package is a folder (or a `.hydrapkg` zip of it) holding this manifest and the files it provides. It is installed
+  into a content-addressed store, never overwritten. The manifest's hash, which covers every file's hash, is the
+  package's identity.
+type: object
+additionalProperties: false
+required: [name, version, licence, provides]
+properties:
+  name:
+    description: "`owner/name`, lowercase letters, digits and `-`."
+    type: string
+    pattern: '^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$'
+  version:
+    description: Quote it, so YAML keeps `2026.11.0` text.
+    type: string
+    pattern: '^[0-9A-Za-z][0-9A-Za-z.+_-]*$'
+  description: {type: string}
+  licence:
+    description: One or more licence names.
+    type: array
+    minItems: 1
+    items: {type: string, minLength: 1}
+  attribution: {type: string}
+  depends:
+    type: array
+    items:
+      type: string
+      pattern: '^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$'
+  provides:
+    type: object
+    additionalProperties: false
+    minProperties: 1
+    properties:
+      geo:
+        type: array
+        items:
+          type: object
+          additionalProperties: false
+          required: [layer, file]
+          properties:
+            layer: {type: string}
+            file: {$ref: "#/$defs/path"}
+            critical:
+              description: What the Atlas needs to draw at all; the rest install on demand.
+              type: boolean
+      symbology:
+        type: object
+        additionalProperties: false
+        properties:
+          icons: {$ref: "#/$defs/path"}
+          badges: {$ref: "#/$defs/path"}
+          hints: {$ref: "#/$defs/path"}
+      archetypes: {$ref: "#/$defs/path"}
+      timeline:
+        description: A Timeline kit, how the Timeline draws kinds of fact, classes of event and posts (wiki/timelinekit.py).
+        $ref: "#/$defs/path"
+      themes:
+        type: array
+        items: {$ref: "#/$defs/path"}
+  files:
+    description: Every file of the package, path to `sha256:<hex>`.
+    type: object
+    additionalProperties:
+      type: string
+      pattern: '^sha256:[0-9a-f]{64}$'
+$defs:
+  path:
+    description: A relative path inside the package (no leading slash, no `..`, no backslash).
+    type: string
+    pattern: '^(?![A-Za-z]:)(?!/)(?!.*\\)(?!(?:.*/)?\.\.(?:/|$))[^/].*$'

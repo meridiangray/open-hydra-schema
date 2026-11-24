@@ -1,0 +1,35 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://meridiangray.github.io/open-hydra-schema/archive/article.schema.yaml
+title: An article's front matter
+description: >-
+  `.hydra/articles/<H body>.md` (format 3, design D11): an entry's prose, kept apart from its records and keyed by the
+  H body so it survives merges. YAML front matter lists the sections; each section's Markdown follows under a marker
+  line `<!-- section <id> -->`. A section with `from` and no `forked` arrived from outside and cannot be edited;
+  editing forks it (it becomes the archive's own text, keeping `from` and the licence). Citations in prose are
+  `[^source-id p.23]`.
+type: object
+additionalProperties: false
+required: [sections]
+properties:
+  sections:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required: [id, heading]
+      properties:
+        id:
+          description: Unique in the article; the marker line names it.
+          type: string
+          minLength: 1
+        heading: {type: string}
+        from:
+          description: "Where an imported section came from: `enwiki:<Title>@<revision id>`."
+          type: string
+          pattern: '^enwiki:.+@[0-9]+$'
+        licence:
+          description: The licence an imported section carries (CC BY-SA 4.0 for Wikipedia).
+          type: string
+        forked:
+          description: "An imported section the archive edited: now its own text, provenance kept."
+          type: boolean

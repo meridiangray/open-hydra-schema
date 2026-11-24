@@ -1,0 +1,67 @@
+# The files of an archive, and which spec names each. First matching entry wins.
+#
+#   path     relative to the archive root; `*` is one path segment's characters, `**/` is any number of folders
+#   kind     authored   versioned in history; a person or an agent writes it
+#            derived    rebuilt by a command; never written by hand
+#            media      pictures and captured documents; named, not parsed
+#            schema     the vendored schema, published as `schema/` and `archive/` of open-hydra-schema
+#   parse    how a file is read before it is checked: yaml, json, jsonl, records (a JSON array or JSON lines),
+#            front-matter (the YAML between the first two `---` lines), none
+#   schema   the JSON Schema in this folder that every parsed document (or every row) must satisfy; null: the file is
+#            named here and its shape is described in its own header comment, with no schema yet
+#   status   unspecified  named, no schema yet (`schema: null`)
+#
+# Anything else in an archive is not part of the format; `check` and the coverage test report it.
+files:
+  - {path: hydra.yaml, kind: authored, parse: yaml, schema: hydra.schema.yaml}
+  - {path: wiki.yaml, kind: authored, parse: yaml, schema: wiki.schema.yaml}
+  - {path: hydra-package.yaml, kind: derived, parse: yaml, schema: package.schema.yaml, note: only inside a package}
+  - {path: hydra-pack.json, kind: derived, parse: json, schema: pack.schema.yaml, note: only inside a .hydra pack}
+  - {path: "collections/*.json", kind: authored, parse: records, schema: record.schema.yaml}
+  - {path: "**/.gitkeep", kind: authored, parse: none, schema: null, note: keeps an empty folder}
+
+  - {path: ".hydra/LICENSE-template.txt", kind: authored, parse: none, schema: null}
+  - {path: ".hydra/rules/*.yaml", kind: authored, parse: yaml, schema: null, status: unspecified,
+     note: "positions, hints, badges, archetypes, launchers, vocabularies, capacity, keys, standards, groups, kinship, wikidata, scope, geo: each file's header describes it"}
+  - {path: ".hydra/rules/defaults/*.yaml", kind: authored, parse: yaml, schema: null, status: unspecified,
+     note: "the shipped defaults: positions, archetypes, domains, launchers"}
+  - {path: ".hydra/schema/wikidata/properties.yaml", kind: schema, parse: yaml, schema: wikidata.schema.yaml,
+     note: "the Wikidata layer: which Wikidata property each field is (`_meta.wd`), and the fields with none; applied after ftm/ and extensions/ load, never read as types"}
+  - {path: ".hydra/schema/wikidata/classes.yaml", kind: schema, parse: yaml, schema: wikidata.schema.yaml,
+     note: "the Wikidata layer: which Wikidata class (P31) each type is"}
+  - {path: ".hydra/schema/**", kind: schema, parse: none, schema: null,
+     note: "ftm/, extensions/ (artifact, collate, capacity, geo), params/<Type>.param.yaml, direction.yaml, wikidata/ (the Wikidata layer), and this spec in archive/"}
+  - {path: ".hydra/sources/entries/*.json", kind: authored, parse: records, schema: record.schema.yaml}
+  - {path: ".hydra/sources/files/**", kind: media, parse: none, schema: null, note: captured source text and files read by read_source}
+  - {path: ".hydra/sources/citations.jsonl", kind: authored, parse: jsonl, schema: citation.schema.yaml}
+  - {path: ".hydra/review/**/verdicts.yaml", kind: authored, parse: yaml, schema: verdicts.schema.yaml}
+  - {path: ".hydra/review/suggest-dismissed.yaml", kind: authored, parse: yaml, schema: null, note: "which Review decisions the Suggestions box's Dismiss made, so its Reset undoes only those (hydra/suggest.py)"}
+  - {path: ".hydra/ui/favorites.json", kind: authored, parse: json, schema: null, note: "the reader's favourite entities, in order (wiki/favorites.py); a preference, not a fact"}
+  - {path: ".hydra/ui/settings.json", kind: authored, parse: json, schema: null, note: "the reader's interface choices for this archive: views, folds, filters, map base and layers, notification marks (wiki/uiprefs.py); a preference, not a fact"}
+  - {path: ".hydra/chats/*.jsonl", kind: authored, parse: jsonl, schema: null, note: "chat sessions attached to the archive (hydra/chatstore.py); one message a line"}
+  - {path: ".hydra/resources/layers/*.geojson", kind: authored, parse: json, schema: null,
+     note: "an archive layer on the Atlas: a GeoJSON FeatureCollection in lon/lat with its name (geo/layers.py)"}
+  - {path: ".hydra/resources/**", kind: media, parse: none, schema: null, note: "icons, media and brand files that hints.yaml and wiki.yaml point at"}
+  - {path: ".hydra/tasks/*.md", kind: authored, parse: front-matter, schema: task.schema.yaml}
+  - {path: ".hydra/tasks/*.calls.jsonl", kind: authored, parse: jsonl, schema: null, note: "the MCP's call log for a task: one row per tool call its holder made, no source text"}
+  - {path: ".hydra/workflows/*.yaml", kind: authored, parse: yaml, schema: workflow.schema.yaml}
+  - {path: ".hydra/contexts/*.yaml", kind: authored, parse: yaml, schema: null, note: "an archive's own contexts: the brief a task runs under (hydra/contexts.py)"}
+  - {path: ".hydra/articles/*.md", kind: authored, parse: front-matter, schema: article.schema.yaml}
+  - {path: ".hydra/packages/lock.yaml", kind: authored, parse: yaml, schema: packages-lock.schema.yaml}
+  - {path: ".hydra/enrich/*.jsonl", kind: authored, parse: jsonl, schema: null, note: "the enrichment ledger: what Enrich wrote into each entry (enrichlog.py)"}
+  - {path: ".hydra/mcp.yaml", kind: authored, parse: yaml, schema: null, note: "which tools a hydra-mcp client sees in this archive, layered over the machine-wide mcp.yaml: toolsets, tools {on, off}, locked (hydra_mcp/config.py)"}
+  - {path: ".hydra/write.lock", kind: derived, parse: none, schema: null, note: "runtime: names the process now writing; never kept, snapshotted or packed"}
+  - {path: ".hydra/history/snapshots/*.json", kind: derived, parse: json, schema: snapshot.schema.yaml}
+  - {path: ".hydra/history/**", kind: derived, parse: none, schema: null, note: "objects/, refs/, HEAD: history.py's docstring"}
+  - {path: ".hydra/parsed/**", kind: derived, parse: none, schema: null}
+  - {path: ".hydra/cache/**", kind: derived, parse: none, schema: null}
+
+  - {path: "universe/universe.yaml", kind: authored, parse: yaml, schema: universe.schema.yaml}
+  - {path: "universe/canon.jsonl", kind: authored, parse: jsonl, schema: canon.schema.yaml}
+  - {path: "universe/wiki.yaml", kind: authored, parse: yaml, schema: wiki.schema.yaml}
+  - {path: "universe/review/verdicts.yaml", kind: authored, parse: yaml, schema: verdicts.schema.yaml}
+  - {path: "universe/collections/*.yaml", kind: authored, parse: yaml, schema: universe-collection.schema.yaml}
+  - {path: "universe/members/*.hydra", kind: authored, parse: none, schema: null, note: "an embedded member, itself a pack"}
+  - {path: "universe/backdrop/**", kind: authored, parse: none, schema: null, status: unspecified,
+     note: "backdrop.yaml, themes/, archetypes.yaml, icons/, geo/: universe/backdrop.py's docstring"}
+  - {path: "universe/.parsed/**", kind: derived, parse: none, schema: null}

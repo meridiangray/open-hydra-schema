@@ -1,0 +1,17 @@
+# Place.param.yaml — Matching and autofold parameters for 'Place'
+# Two places of one name are two places when their country, parent or kind differ (two Springfields).
+
+schema: Place
+
+match:
+  - name
+  - alias
+
+distinct:
+  - country
+  - parent
+  - placeType
+  - adminLevel
+
+fold:
+  - parent

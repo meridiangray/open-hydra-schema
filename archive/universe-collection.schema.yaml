@@ -1,0 +1,14 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://meridiangray.github.io/open-hydra-schema/archive/universe-collection.schema.yaml
+title: universe/collections/<slug>.yaml
+description: A curated list of entries in the universe, by H.
+type: object
+additionalProperties: false
+required: [members]
+properties:
+  title: {type: string}
+  members:
+    type: array
+    items:
+      type: string
+      pattern: '^(H-([cpd][0-9a-f]-)?)?[0-9a-hjkmnp-tv-z]{12}$'

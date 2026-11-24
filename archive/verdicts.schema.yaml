@@ -1,0 +1,77 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://meridiangray.github.io/open-hydra-schema/archive/verdicts.schema.yaml
+title: Verdicts (the decision grammar)
+description: >-
+  A `verdicts.yaml`: one flat mapping of decisions, `<kind>-<subject>: <value>`. Written by `answer`, `review`, the
+  Review page and the Suggestions box; read on every build. Every `verdicts.yaml` under `.hydra/review/` at any depth
+  is read, and so is `universe/review/verdicts.yaml` (the universe's pins). Two files that disagree about one
+  decision: `rejected` wins.
+
+
+  | Kind | Key | Value | Meaning |
+  |---|---|---|---|
+  | `merge` | `merge-<16 hex>` | `confirmed` or `rejected`, or `{status, basis}` | two records are, or are not, one entity |
+  | `place` | `place-<16 hex>` | as `merge` | a record is, or is not, placed under another |
+  | `ref` | `ref-<16 hex>` | a record id, or `none` | what an ambiguous or unresolved reference means |
+  | `cap` | `cap-<record id>` (archive) or `cap-H-<body>` (universe) | one of the entity's names | the caption shown |
+  | `stub` | `stub-<slug>` | a schema name | a name no record has becomes one entity |
+  | `geo` | `geo-H-<body>` | comma list of location ids, or `auto` | the primary geometry a person chose |
+  | `loc` | `loc-<id>` | a Place H, a candidate number or `none` | what an unresolved place name means (draft) |
+  | `site` | `site-<id>` | `confirmed` or `rejected` | a proposed GeoLink (draft) |
+  | `wd` | `wd-H-<body>` | a Wikidata item `Q<digits>` or `none` | which item is this entry (draft) |
+  | `arch` | `arch-H-<body>` | `{<archetype id>: yes or no}` | whether an entry is of an archetype (lives in `universe/review/verdicts.yaml`; format 2 kept it in `universe/review/archetypes.yaml`, which `hydra-ctl upgrade` folds in) |
+  | `sug` | `sug-<body>.<id>` | `rejected` | a suggestion the person turned down |
+  | `end` | `end-<relationship record id>` | `{end: YYYY[-MM[-DD]], basis: <kind>:<id>}`, `{state: holds}` or `{state: unknown}` | where an Occupancy, Employment or Membership with a start and no end stopped: a judgement, built as an inferred end, never as a stated `endDate` |
+
+
+  `basis` is a fingerprint of the evidence at the time of the decision: a confirmation whose basis no longer
+  matches lapses to `confirmed-stale` (asked again, not applied); a rejection stays applied and is marked stale.
+type: object
+additionalProperties: false
+propertyNames:
+  pattern: '^(merge|place|ref|cap|stub|geo|loc|site|wd|arch|sug|end)-.+$'
+  x-message: "is not a decision key (merge-, place-, ref-, cap-, stub-, geo-, loc-, site-, wd-, arch-, sug- or end-)"
+patternProperties:
+  '^(merge|place)-[0-9a-f]{16}$': {$ref: "#/$defs/status"}
+  '^ref-[0-9a-f]{16}$': {type: string, minLength: 1}
+  '^cap-.+$': {type: string, minLength: 1}
+  '^stub-.+$': {type: string, pattern: '^[A-Z][A-Za-z0-9]*$'}
+  '^geo-H-[0-9a-hjkmnp-tv-z]{12}$': {type: string, minLength: 1}
+  '^loc-.+$': {type: string, minLength: 1}
+  '^site-.+$': {$ref: "#/$defs/status"}
+  '^wd-H-[0-9a-hjkmnp-tv-z]{12}$':
+    type: string
+    pattern: '^(Q[0-9]+|none)$'
+  '^arch-H-[0-9a-hjkmnp-tv-z]{12}$':
+    type: object
+    propertyNames: {pattern: '^[a-z0-9][a-z0-9-]*$'}
+    additionalProperties: {enum: ["yes", "no"]}
+  '^sug-[0-9a-hjkmnp-tv-z]{12}\..+$': {const: rejected}
+  '^end-.+$':
+    oneOf:
+      - type: object
+        additionalProperties: false
+        required: [end, basis]
+        properties:
+          end: {type: string, pattern: '^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$'}
+          basis: {type: string, pattern: '^[a-z-]+:.+$'}
+      - type: object
+        additionalProperties: false
+        required: [state]
+        properties:
+          state: {enum: [holds, unknown]}
+x-status-by-kind:
+  loc: draft
+  site: draft
+  wd: draft
+$defs:
+  status:
+    anyOf:
+      - enum: [confirmed, rejected]
+      - type: object
+        additionalProperties: false
+        required: [status]
+        properties:
+          status: {enum: [confirmed, rejected]}
+          basis: {type: string}
+    x-message: "is not a decision (confirmed or rejected, or {status, basis})"

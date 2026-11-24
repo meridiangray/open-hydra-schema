@@ -1,0 +1,307 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://meridiangray.github.io/open-hydra-schema/archive/wiki.schema.yaml
+title: wiki.yaml
+description: >-
+  How an archive's wiki looks and what a page holds. Read from the archive's root `wiki.yaml` (a member's default)
+  and from `universe/wiki.yaml` (over every member's); a mapping merges key by key, anything else replaces.
+  `hydra.yaml` `collections.<name>.wiki` overrides it again for one collection's pages. The Archive Configuration
+  page writes `title` and `header_card` into `universe/wiki.yaml`; `hydra-ctl wiki define` writes `define` and
+  `sections`.
+type: object
+additionalProperties: false
+properties:
+  title:
+    description: The left rail's heading and the site's name. Text, or {text, sub} with a subtitle.
+    anyOf:
+      - type: string
+      - type: object
+        additionalProperties: false
+        properties:
+          text: {type: string}
+          sub: {type: string}
+  rail_image:
+    description: How the left rail's image is drawn, a `square` (default) or a `circle` mask over the same square crop.
+    type: object
+    additionalProperties: false
+    properties:
+      shape: {enum: [square, circle]}
+  title_style:
+    description: How the left rail's title is set in type. Only keys that differ from the defaults are written; the theme still sets the colour.
+    type: object
+    additionalProperties: false
+    properties:
+      font: {description: "The typeface: theme (default, the theme's heading font), georgia, serif, sans, mono, palatino, garamond, optima or futura.", enum: [theme, georgia, serif, sans, mono, palatino, garamond, optima, futura]}
+      size: {description: "Size in rem, from 1.0 to 2.2 (default 1.55).", type: number, minimum: 1.0, maximum: 2.2}
+      weight: {description: "Weight: 300, 400 (default), 600 or 700.", enum: [300, 400, 600, 700]}
+      tracking: {description: "Letter spacing in em, from -0.02 to 0.2 (default 0.012).", type: number, minimum: -0.02, maximum: 0.2}
+      case: {description: "`normal` (as written, default), `upper` or `smallcaps`.", enum: [normal, upper, smallcaps]}
+      align: {description: "`center` (default, under a square image) or `left`.", enum: [left, center]}
+  about:
+    description: One sentence for the front page.
+    type: string
+  view:
+    description: The view a project opens at.
+    enum: [wiki, geo, radial, org, messaging, agentic, blank]
+  layout:
+    description: "`float` (default): the infobox floats beside the text; `column`: it keeps a column of its own."
+    enum: [float, column]
+  flags:
+    description: The flag drawn beside a country.
+    enum: [circle, rect, square, none]
+  navboxes:
+    description: The boxes of related entries at the foot of a page (on by default).
+    type: boolean
+  landing:
+    description: >-
+      The main page's sections, in order. Known: domains, featured, current, decades, recent, attention, added,
+      deals, groups, explore, people, years_ago, in_office.
+    type: array
+    items: {type: string}
+  chips:
+    description: Which labels sit under a page's title, in order (a provider name each).
+    type: array
+    items: {type: string}
+  sections:
+    description: Per page type (or a parent type), the sections a page gets, in order. A section is a built-in name or one from `define`.
+    type: object
+    additionalProperties:
+      type: array
+      items: {type: string}
+  panel:
+    description: An entry's views and their buttons, in order.
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required: [label, sections]
+      properties:
+        label: {type: string}
+        icon: {type: string}
+        sections:
+          type: array
+          items: {type: string}
+        titles:
+          description: Section to the button's label when that section is the first one it holds.
+          type: object
+          additionalProperties: {type: string}
+  define:
+    description: Sections of your own, by name (`hydra-ctl wiki define` writes them).
+    type: object
+    additionalProperties: {$ref: "#/$defs/section"}
+  lead:
+    description: >-
+      A page's opening sentence, per schema (or parent schema); a template with `{slot}` and `[optional part]`;
+      `false` writes none.
+    type: object
+    additionalProperties:
+      anyOf:
+        - type: string
+        - const: false
+  roles:
+    description: Which schema plays each role the built-in sections look for (`person`, `post`, ...).
+    type: object
+    propertyNames:
+      enum: [person, post, event, tenure, kin, ownership, representation]
+    additionalProperties: {type: string}
+  field_labels:
+    description: The heading in "Mentioned in", by the field that names the page.
+    type: object
+    additionalProperties: {type: string}
+  edge_labels:
+    description: The heading a relationship's list gets, by relationship and by which end the page is.
+    type: object
+    additionalProperties:
+      type: object
+      additionalProperties: false
+      properties:
+        source: {type: string}
+        target: {type: string}
+  icons:
+    description: Page type to an icon file name under `.hydra/resources/icons/` (letters, digits, `-`).
+    type: object
+    additionalProperties:
+      type: string
+      pattern: '^[a-z0-9-]+$'
+  badges:
+    description: How a hint badge token is worded; `null` hides it.
+    type: object
+    additionalProperties: {type: [string, "null"]}
+  badge_rules:
+    description: >-
+      Derived-badge rules, by badge key; layered over hydra's and the archive's `.hydra/rules/badges.yaml`. `null`
+      drops a rule; a rule naming an existing key changes only what it says.
+    type: object
+    additionalProperties:
+      anyOf:
+        - type: "null"
+        - $ref: "#/$defs/badgeRule"
+  derived_badges:
+    description: "`false` switches derived badges off; `{max: N}` caps how many a page shows (default 8)."
+    anyOf:
+      - type: boolean
+      - type: object
+        additionalProperties: false
+        properties:
+          max: {type: integer, minimum: 0}
+  link_colours:
+    description: Relationship family to a colour, as the Symbology page sets them.
+    type: object
+    additionalProperties: {type: string}
+  timeline_marks:
+    description: >-
+      Relationship type to what the Timeline draws when a link has a start and no end, as the Symbology page sets
+      them: start (a diamond at the start), fades (a post's bar fading out, with a ? cap) or runs (a bar to today).
+      Unset types: posts fade, others are a start mark (wiki/timelineview.py).
+    type: object
+    additionalProperties: {enum: [start, fades, runs]}
+  identifiers:
+    description: >-
+      How an `upstream: <namespace>:<key>` value names the outside site; the url takes `{id}`. `null` drops a built-in.
+    type: object
+    additionalProperties:
+      anyOf:
+        - type: "null"
+        - type: object
+          additionalProperties: false
+          required: [label, url]
+          properties:
+            label: {type: string}
+            url: {type: string, pattern: '\{id\}'}
+  theme:
+    description: The wiki's look, over a theme's own colours.
+    type: object
+    additionalProperties: false
+    properties:
+      base:
+        description: A built-in (shore, dune, tide, tan, light), a theme file's or a VS Code theme's name.
+        type: string
+      fonts:
+        type: object
+        additionalProperties: false
+        properties:
+          heading: {type: string}
+          body: {type: string}
+      radius: {type: string}
+      light:
+        description: Any colour variable of the theme (bg, ink, muted, line, soft, panel, head, headink, link, accent...).
+        type: object
+        additionalProperties: {type: string}
+      dark:
+        type: object
+        additionalProperties: {type: string}
+  radial:
+    description: What the Radial view's filters start with.
+    type: object
+    additionalProperties: false
+    properties:
+      hide:
+        type: array
+        items: {type: string}
+      hide_links:
+        type: array
+        items: {type: string}
+      hub: {type: integer, minimum: 1}
+      depth: {enum: [1, 2, 3]}
+  map:
+    description: The Atlas.
+    type: object
+    additionalProperties: false
+    properties:
+      national:
+        description: Entry types whose country alone is worth drawing (schema or its label).
+        type: array
+        items: {type: string}
+      hide:
+        description: Entry types switched off at first.
+        type: array
+        items: {type: string}
+      lang:
+        description: The basemap's label language.
+        type: string
+  header_card:
+    description: The front page's header image (Archive Configuration writes it; the file is in `.hydra/resources/brand/`).
+    type: object
+    additionalProperties: false
+    required: [file]
+    properties:
+      file:
+        description: The file name in `.hydra/resources/brand/` (`header-card.<ext>`).
+        type: string
+      focus:
+        description: The focal point, x and y as percentages.
+        type: array
+        items: {type: number, minimum: 0, maximum: 100}
+        minItems: 2
+        maxItems: 2
+      title_over:
+        description: Whether the title is drawn over the image.
+        type: boolean
+$defs:
+  section:
+    description: A section of your own.
+    type: object
+    additionalProperties: false
+    properties:
+      title: {type: string}
+      relations:
+        type: object
+        additionalProperties: false
+        required: [edge]
+        properties:
+          edge:
+            description: A role (`person`, `post`, `event`, `tenure`, `kin`, `ownership`, `representation`) or a relationship name.
+            type: string
+          side:
+            enum: [source, target]
+          verb:
+            type: [string, array]
+          other:
+            description: Only relationships whose other end is this type or one that extends it.
+            type: string
+          former:
+            type: boolean
+      columns:
+        description: "`name`, `verb`, `share`, `status`, `period`, `date`, `deal`, `thumb`, `badges`; `{label, column}` or `{label, prop}`."
+        type: array
+        items:
+          anyOf:
+            - type: string
+            - type: object
+              additionalProperties: false
+              properties:
+                label: {type: string}
+                column: {type: string}
+                prop: {type: string}
+      sort:
+        type: array
+        items: {type: string}
+      view:
+        enum: [table, list, timeline]
+      min:
+        type: integer
+        minimum: 0
+      props:
+        description: "Instead of `relations`: a table of this page's own properties."
+        type: [string, array]
+  badgeRule:
+    type: object
+    additionalProperties: false
+    properties:
+      label: {type: string}
+      short: {type: string}
+      group:
+        enum: [role, service, industry]
+      icon: {type: string}
+      tip: {type: string}
+      title:
+        description: A regular expression over a post's title (write it in single quotes).
+        type: string
+      ongoing: {type: boolean}
+      when:
+        description: Conditions, any one of which fires the badge (see `wiki/badges.py`).
+        type: array
+        items: {type: object}
+      except:
+        description: Conditions, none of which may hold.
+        type: array
+        items: {type: object}

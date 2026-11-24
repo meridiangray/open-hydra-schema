@@ -2,13 +2,13 @@
 
 schema: Event
 
+# Events pair on their names only. A date or a place can rule a pair out (distinct, below) but never
+# suggests one: two events in one year or one city are two events (owner, 2026-11-21; the Pollard run
+# raised 18 merge questions from shared dates alone).
 match:
   - name
   - alias
   - weakAlias
-  - date
-  - startDate
-  - location
 
 distinct:
   - date

@@ -1,0 +1,85 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://meridiangray.github.io/open-hydra-schema/archive/task.schema.yaml
+title: A task file's front matter
+description: >-
+  `.hydra/tasks/<id>.md`: Markdown with YAML front matter (the schema below), then one `## <block title>` section per
+  block of the workflow with a checkbox line per step, then `## Log`. The checkbox lines are
+  `- [ ] <code> <text>` with `[ ]` open, `[x]` done, `[!]` blocked, `[-]` skipped, and ` => <result>` after the text.
+  Keys beyond these are not part of the format.
+type: object
+additionalProperties: false
+required: [id, title, workflow, status]
+properties:
+  id:
+    description: "`tsk-` and ten Crockford base32 characters."
+    type: string
+    pattern: '^tsk-[0-9a-hjkmnp-tv-z]{10}$'
+  title: {type: string, minLength: 1}
+  workflow:
+    description: A workflow name (built in, or one of `.hydra/workflows/`).
+    type: string
+  context:
+    description: The context the task runs under (built in, or one of `.hydra/contexts/`); fixed at the first write.
+    type: [string, "null"]
+  route:
+    description: The workflows the task runs, in order; `workflow` is the first. Step codes of a route of several carry their position (`2.A1`).
+    type: array
+    items: {type: string}
+  model:
+    description: The model of the latest holder.
+    type: [string, "null"]
+  client:
+    description: The client of the latest holder.
+    type: [string, "null"]
+  collection:
+    type: [string, "null"]
+  views:
+    description: The wiki views the task adds blocks for.
+    type: array
+    items: {type: string}
+  guides:
+    description: Guides the task's agent reads.
+    type: array
+    items: {type: string}
+  authorized:
+    description: MCP tools the person has let the agent confirm without asking again.
+    type: array
+    items: {type: string}
+  status:
+    enum: [open, checked-out, blocked, done]
+  holder:
+    description: Who has the task checked out.
+    type: [string, "null"]
+  since:
+    type: [string, "null"]
+  last_activity:
+    description: The last step, added step or logged write by the holder; the task is stale when this is older than `tasks.stale_after`.
+    type: [string, "null"]
+  closed_by:
+    type: [string, "null"]
+  closed_at:
+    type: [string, "null"]
+  start_snapshot:
+    description: The history snapshot when the task was checked out.
+    type: [string, "null"]
+  end_snapshot:
+    type: [string, "null"]
+  sources:
+    description: Sources the task recorded.
+    type: array
+    items: {type: string}
+  claims:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required: [step, claim]
+      properties:
+        step: {type: string}
+        section: {type: string}
+        claim: {type: string}
+        evidence:
+          type: array
+          items: {type: string}
+        by: {type: string}
+        at: {type: string}

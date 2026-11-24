@@ -1,0 +1,53 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://meridiangray.github.io/open-hydra-schema/archive/canon.schema.yaml
+title: A canon row (the H-table)
+description: >-
+  One line of `universe/canon.jsonl`: the universe's promises. One row per H that something depends on; an H nobody
+  has published or decided has no row (state `c`, derived again by every build). Only review and publishing write it,
+  and a state only moves forward (`c` to `p` to `d`). An H is `H-<state><flags>-<body>`: the body is 12 Crockford
+  base32 characters derived from the universe uid and the anchor record; the flags digit is always 0 here (builds
+  compute flags and never write them back).
+type: object
+additionalProperties: false
+required: [h]
+properties:
+  h:
+    type: string
+    pattern: '^H-[pd]0-[0-9a-hjkmnp-tv-z]{12}$'
+  anchor:
+    description: The record ref the body was derived from, `<member>/<record id>`.
+    type: string
+  members:
+    description: Record refs when the row was written (its basis).
+    type: array
+    items: {type: string}
+  not:
+    description: Bodies this H must never merge with.
+    type: array
+    items:
+      type: string
+      pattern: '^[0-9a-hjkmnp-tv-z]{12}$'
+  redirect:
+    description: The body this H was merged into (written by review).
+    type: string
+    pattern: '^[0-9a-hjkmnp-tv-z]{12}$'
+  title:
+    description: Its title when written (a tombstone keeps it).
+    type: string
+  seq:
+    type: integer
+    minimum: 1
+  published:
+    description: The date it became `p`.
+    type: string
+    pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+  decided:
+    description: The date it became `d`.
+    type: string
+    pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+  by:
+    description: Who wrote the row.
+    type: string
+  source:
+    description: On what evidence (pins).
+    type: string

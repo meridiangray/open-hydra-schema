@@ -1,0 +1,38 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://meridiangray.github.io/open-hydra-schema/archive/universe.schema.yaml
+title: universe.yaml
+description: >-
+  `universe/universe.yaml`: the universe layer's manifest. A universe is a second layer beside the archive's own;
+  its members are where records come from. Every member is read only, compiled in memory with the archive build, so
+  its own merges, rejections and caption pins hold. A record is named across the universe as
+  `<member>/<record id>`.
+type: object
+additionalProperties: false
+required: [members]
+properties:
+  title:
+    description: The universe's name (Archive Configuration keeps it equal to `hydra.yaml` name).
+    type: string
+  uid:
+    description: >-
+      Eight Crockford base32 characters, minted once. H ids derive from it, so two copies of a universe derive the
+      same H for the same cluster.
+    type: string
+    pattern: '^[0-9a-hjkmnp-tv-z]{8}$'
+  members:
+    description: Members by name. `self` is this folder's own archive layer.
+    type: object
+    additionalProperties:
+      type: object
+      additionalProperties: false
+      properties:
+        pack:
+          description: An embedded member, relative to `universe/` (`members/<name>.hydra`).
+          type: string
+        path:
+          description: A linked member, relative to `universe/`.
+          type: string
+        sha256:
+          description: The linked member's bytes, pinned.
+          type: string
+          pattern: '^[0-9a-f]{64}$'

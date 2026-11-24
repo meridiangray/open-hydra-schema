@@ -1,0 +1,44 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://meridiangray.github.io/open-hydra-schema/archive/wikidata.schema.yaml
+title: The Wikidata layer
+description: >-
+  One file of `.hydra/schema/wikidata/` (published as `schema/wikidata/`): which Wikidata property each field is
+  (`properties.yaml`) and which Wikidata class each type is (`classes.yaml`). The layer sits beside FollowTheMoney
+  (`ftm/`) and hydra's extensions (`extensions/`), never inside them, and is applied after they load: every key must
+  name a type and field of the loaded model (a parent type's field counts, and `GeoLink.<role>` a role of
+  `.hydra/rules/geo.yaml`); one that does not is an error in the layer, never a change to the model. An archive's own
+  copy replaces the one hydra ships, and the archive's `.hydra/rules/wikidata.yaml` (the import map) is laid on top.
+type: object
+additionalProperties: false
+minProperties: 1
+properties:
+  properties:
+    description: >-
+      `Schema.field` or a bare `field` to its Wikidata property code: the code every claim hydra writes carries in
+      the record's `_meta.wd`. `Schema.field` wins over the bare field; a bare field must be a field of some type.
+    type: object
+    propertyNames:
+      $ref: '#/$defs/key'
+    additionalProperties:
+      type: string
+      pattern: '^P[1-9][0-9]*$'
+  none:
+    description: >-
+      Fields that have no Wikidata property, keyed as in `properties`, so "not mapped yet" and "no such property"
+      differ. A key is never in both.
+    type: array
+    items:
+      $ref: '#/$defs/key'
+  classes:
+    description: A Wikidata class (P31, instance of) to the type an item of that class is made as.
+    type: object
+    propertyNames:
+      pattern: '^Q[1-9][0-9]*$'
+    additionalProperties:
+      type: string
+      pattern: '^[A-Z][A-Za-z0-9]*$'
+$defs:
+  key:
+    description: '`Schema.field`, `GeoLink.<role>` or a bare `field`.'
+    type: string
+    pattern: '^([A-Z][A-Za-z0-9]*\.)?[a-z][A-Za-z0-9]*$'

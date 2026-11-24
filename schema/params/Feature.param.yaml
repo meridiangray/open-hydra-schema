@@ -1,0 +1,11 @@
+# Feature.param.yaml — Matching and autofold parameters for 'Feature'
+# A geometry is never matched by name: two Features are one only by key (osm:way/123) or H.
+
+schema: Feature
+
+match: []
+
+distinct:
+  - osmVersion
+
+fold: []

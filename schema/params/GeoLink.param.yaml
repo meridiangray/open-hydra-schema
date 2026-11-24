@@ -1,0 +1,18 @@
+# GeoLink.param.yaml — Matching and autofold parameters for 'GeoLink'
+# As Ownership: one entity, location and role is one geo link unless the dates differ.
+
+schema: GeoLink
+
+match:
+  - entity
+  - location
+  - role
+
+distinct:
+  - startDate
+  - endDate
+
+fold:
+  - entity
+  - location
+  - role

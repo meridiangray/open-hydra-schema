@@ -1,0 +1,35 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://meridiangray.github.io/open-hydra-schema/archive/citation.schema.yaml
+title: A citation row
+description: >-
+  One line of `.hydra/sources/citations.jsonl`: where in a source a record's facts are. One row per record and
+  source; the latest row for a pair wins; a row with every detail blank removes the pair's row. A call number that
+  belongs to the whole document is its own field, `accessNumber`, on the source's record, not here.
+type: object
+additionalProperties: false
+required: [record, source]
+properties:
+  record:
+    description: A record of the last build, `<prefix>:<id>`.
+    type: string
+    minLength: 1
+  source:
+    description: A source document, `<prefix>:<id>` (a record under `.hydra/sources/entries/`, or any Document the build holds).
+    type: string
+    minLength: 1
+  pages:
+    description: "Pages, as the source prints them on the document (`14`, `14-15`, `iv`, `I-16`). 80 characters at most. A PDF's printed numbers are not its page count: see `pdfPages`."
+    type: string
+    maxLength: 80
+  pdfPages:
+    description: "Pages of the document as a file, counted from its first page (`20`, `20-21`): the page a PDF viewer shows. The Pollard report's PDF page 20 prints \"1\"; PDF page 126 prints \"I-16\". Either of `pages` and `pdfPages` may be left out. 80 characters at most."
+    type: string
+    maxLength: 80
+  locator:
+    description: A call number, folio, box, paragraph or timestamp. 200 characters at most.
+    type: string
+    maxLength: 200
+  quote:
+    description: The words quoted, as `read_source` returned them. 2000 characters at most.
+    type: string
+    maxLength: 2000
